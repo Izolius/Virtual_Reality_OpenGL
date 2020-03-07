@@ -6,6 +6,7 @@ using namespace std;
 
 namespace {
 	GLFWwindow* window;
+	CEngine* engine;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -14,6 +15,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	// и приложение после этого закроется
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	else
+	{
+		engine->OnKey(key, scancode, action, mode);
+	}
 }
 
 CWindow::CWindow()
@@ -38,17 +43,12 @@ CWindow::~CWindow()
 
 void CWindow::Show(CEngine* Engine)
 {
+	engine = Engine;
 	// Игровой цикл
 	while (!glfwWindowShouldClose(window))
 	{
 		// Проверяем события и вызываем функции обратного вызова.
 		glfwPollEvents();
-
-		// Команды отрисовки здесь
-		//...
-
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 
 		Engine->OnDrow();
 		

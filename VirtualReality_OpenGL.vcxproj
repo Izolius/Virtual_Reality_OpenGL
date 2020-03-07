@@ -88,13 +88,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Create</PrecompiledHeader>
-      <AdditionalIncludeDirectories>D:\Projects\VirtualReality_OpenGL\packages\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)packages\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;glew.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Projects\VirtualReality_OpenGL\packages\glew.1.9.0.1\build\native\lib\v110\Win32\Debug\static;D:\Projects\VirtualReality_OpenGL\packages\Simple OpenGL Image Library\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Debug\static;$(ProjectDir)packages\Simple OpenGL Image Library\lib;$(ProjectDir)packages\Simple OpenGL Image Library\projects\VC9\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -168,6 +168,7 @@
     <Import Project="packages\glfw.3.3.2\build\native\glfw.targets" Condition="Exists('packages\glfw.3.3.2\build\native\glfw.targets')" />
     <Import Project="packages\glew.redist.1.9.0.1\build\native\glew.redist.targets" Condition="Exists('packages\glew.redist.1.9.0.1\build\native\glew.redist.targets')" />
     <Import Project="packages\glew.1.9.0.1\build\native\glew.targets" Condition="Exists('packages\glew.1.9.0.1\build\native\glew.targets')" />
+    <Import Project="packages\glm.0.9.9.700\build\native\glm.targets" Condition="Exists('packages\glm.0.9.9.700\build\native\glm.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -176,5 +177,6 @@
     <Error Condition="!Exists('packages\glfw.3.3.2\build\native\glfw.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glfw.3.3.2\build\native\glfw.targets'))" />
     <Error Condition="!Exists('packages\glew.redist.1.9.0.1\build\native\glew.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glew.redist.1.9.0.1\build\native\glew.redist.targets'))" />
     <Error Condition="!Exists('packages\glew.1.9.0.1\build\native\glew.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glew.1.9.0.1\build\native\glew.targets'))" />
+    <Error Condition="!Exists('packages\glm.0.9.9.700\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glm.0.9.9.700\build\native\glm.targets'))" />
   </Target>
 </Project>
