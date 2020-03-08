@@ -8,5 +8,6 @@ public:
 	CWindow();
 	~CWindow();
 	void Show(CEngine* Engine);
+	GLFWwindow* GetWindow();
 };
 

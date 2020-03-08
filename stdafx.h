@@ -7,7 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
+#include <string>
+#include <exception>
+
+
 #include "CTexture.h"
 #include "CGLObject.h"
-#include <exception>
 #include "ShaderUtils.h"

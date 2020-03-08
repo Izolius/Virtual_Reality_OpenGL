@@ -16,13 +16,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="vert.glsl">
+    <None Include="shaders\frag.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="frag.glsl">
+    <None Include="shaders\frag2.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="frag2.glsl">
+    <None Include="shaders\terrain_vert.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\vert.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -45,6 +48,15 @@
     <ClCompile Include="CTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CObjLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CUniformParam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CWindow.h">
@@ -63,6 +75,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CObjLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CUniformParam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJ_Loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

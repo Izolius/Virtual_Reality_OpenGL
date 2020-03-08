@@ -15,8 +15,6 @@ CGLObject::CGLObject()
 CGLObject::~CGLObject()
 {
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 }
 
 void CGLObject::SetProgram(GLuint Program)
@@ -26,9 +24,10 @@ void CGLObject::SetProgram(GLuint Program)
 
 void CGLObject::Draw(const glm::mat4& View, const glm::mat4& Projection)
 {
+	glUseProgram(m_Propgram);
+
 	if (HasTexture())
 		glBindTexture(GL_TEXTURE_2D, m_Texture.Texture);
-	glUseProgram(m_Propgram);
 
 	GLint modelLoc = glGetUniformLocation(m_Propgram, "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_Model));
@@ -39,21 +38,29 @@ void CGLObject::Draw(const glm::mat4& View, const glm::mat4& Projection)
 	modelLoc = glGetUniformLocation(m_Propgram, "projection");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(Projection));
 
+	for (CUniformParam* Param : m_UniformParams)
+		Param->Set(m_Propgram);
+
 	glBindVertexArray(VAO);
-	if (m_Indices.size())
-		glDrawElements(GL_TRIANGLES, m_Indices.size(), GL_UNSIGNED_INT, 0);
+	if (m_VertexIndices.size())
+		glDrawElements(GL_TRIANGLES, m_VertexIndices.size(), GL_UNSIGNED_INT, 0);
 	else
 		glDrawArrays(GL_TRIANGLES, 0, m_Vertices.size());
 }
 
-void CGLObject::SetVertices(const std::vector<GLfloat>& Vertices)
+void CGLObject::SetVertices(const std::vector<glm::vec3>& Vertices)
 {
 	m_Vertices = Vertices;
 }
 
 void CGLObject::SetIndices(const std::vector<GLuint>& Indices)
 {
-	m_Indices = Indices;
+	m_VertexIndices = Indices;
+}
+
+void CGLObject::SetUVs(const std::vector<glm::vec2>& UVs)
+{
+	m_UVs = UVs;
 }
 
 void CGLObject::SetTexture(CTexture Texture)
@@ -66,6 +73,11 @@ void CGLObject::SetModel(const glm::mat4& Model)
 	m_Model = Model;
 }
 
+void CGLObject::AddUniformParam(CUniformParam* Param)
+{
+	m_UniformParams.push_back(Param);
+}
+
 void CGLObject::Prepare()
 {
 	if (m_Vertices.size() == 0)
@@ -73,34 +85,34 @@ void CGLObject::Prepare()
 	//if (m_Indices.size() == 0)
 	//	throw exception("No Indices");
 
+	GLuint Layout = 0;
+
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	glGenBuffers(1, &m_VertexBuffer);
+	if (m_VertexIndices.size())
+		glGenBuffers(1, &m_VertexElementBuffer);
+	if (m_UVs.size())
+		glGenBuffers(1, &m_UVBuffer);
+	glGenBuffers(1, &m_NormalBuffer);
 	glBindVertexArray(VAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * m_Vertices.size(), m_Vertices.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * m_Vertices.size(), m_Vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(Layout, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+	glEnableVertexAttribArray(Layout++);
 
-	if (m_Indices.size())
+	if (m_VertexIndices.size())
 	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_Indices.size(), m_Indices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VertexElementBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_VertexIndices.size(), m_VertexIndices.data(), GL_STATIC_DRAW);
 	}
 
-	GLsizei Stride = 3 * sizeof(GLfloat);
-	if (HasTexture())
-		Stride += m_Texture.Coords * sizeof(GLfloat);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Stride, nullptr);
-	glEnableVertexAttribArray(0);
-
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, Stride, (GLvoid*)(3 * sizeof(GLfloat)));
-	//glEnableVertexAttribArray(1);
-
-	if (HasTexture())
+	if (m_UVs.size() && HasTexture())
 	{
-		glVertexAttribPointer(2, m_Texture.Coords, GL_FLOAT, GL_FALSE, Stride, (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, m_UVBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 2 * m_UVs.size(), m_UVs.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(Layout, m_Texture.Coords, GL_FLOAT, GL_FALSE, m_Texture.Coords * sizeof(GLfloat), nullptr);
+		glEnableVertexAttribArray(Layout++);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

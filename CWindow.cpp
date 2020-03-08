@@ -4,13 +4,9 @@
 #include "CEngine.h"
 using namespace std;
 
-namespace {
-	GLFWwindow* window;
-	CEngine* engine;
-}
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	CEngine* engine = reinterpret_cast<CEngine*>(glfwGetWindowUserPointer(window));
 	// Когда пользователь нажимает ESC, мы устанавливаем свойство WindowShouldClose в true, 
 	// и приложение после этого закроется
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -21,10 +17,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	CEngine* engine = reinterpret_cast<CEngine*>(glfwGetWindowUserPointer(window));
+	engine->OnMouseMove(xpos, ypos);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	CEngine* engine = reinterpret_cast<CEngine*>(glfwGetWindowUserPointer(window));
+	engine->OnScroll(xoffset, yoffset);
+}
+
 CWindow::CWindow()
 {
 	m_Window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
-	window = m_Window;
 	if (m_Window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -33,19 +40,21 @@ CWindow::CWindow()
 	}
 	glfwMakeContextCurrent(m_Window);
 	glfwSetKeyCallback(m_Window, key_callback);
+	glfwSetCursorPosCallback(m_Window, mouse_callback);
+	glfwSetScrollCallback(m_Window, scroll_callback);
+	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 CWindow::~CWindow()
 {
 	glfwDestroyWindow(m_Window);
-	window = nullptr;
 }
 
 void CWindow::Show(CEngine* Engine)
 {
-	engine = Engine;
+	glfwSetWindowUserPointer(m_Window, Engine);
 	// Игровой цикл
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(m_Window))
 	{
 		// Проверяем события и вызываем функции обратного вызова.
 		glfwPollEvents();
@@ -53,6 +62,11 @@ void CWindow::Show(CEngine* Engine)
 		Engine->OnDrow();
 		
 		// Меняем буферы местами
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(m_Window);
 	}
+}
+
+GLFWwindow* CWindow::GetWindow()
+{
+	return m_Window;
 }

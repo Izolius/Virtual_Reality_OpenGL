@@ -2,6 +2,7 @@
 #include "CEngine.h"
 #include "CWindow.h"
 #include "ShaderUtils.h"
+#include "CObjLoader.h"
 
 CEngine::CEngine(CWindow* Window):
 	m_Window(Window)
@@ -18,88 +19,33 @@ CEngine::~CEngine()
 
 void CEngine::Prepare()
 {
-	CShader Shader1; Shader1.Load("vert.glsl", "frag.glsl");
-	CShader Shader2; Shader2.Load("vert.glsl", "frag2.glsl");
+	CShader Shader1; Shader1.Load("shaders/vert.glsl", "shaders/frag.glsl");
+	CShader Shader2; Shader2.Load("shaders/vert.glsl", "shaders/frag2.glsl");
 	CTexture Texture;
-	Texture.Load("texture2.jpg");
+	Texture.Load("rsc/terrain.jpg");
+	CTexture Terrain;
+	Terrain.Load("rsc/terrain.bmp");
 	m_Shaders.push_back(Shader1);
 	m_Shaders.push_back(Shader2);
 
-	glm::vec3 cubePositions[] = {
-	  glm::vec3(0.0f,  0.0f,  0.0f),
-	  glm::vec3(2.0f,  5.0f, -15.0f),
-	  glm::vec3(-1.5f, -2.2f, -2.5f),
-	  glm::vec3(-3.8f, -2.0f, -12.3f),
-	  glm::vec3(2.4f, -0.4f, -3.5f),
-	  glm::vec3(-1.7f,  3.0f, -7.5f),
-	  glm::vec3(1.3f, -2.0f, -2.5f),
-	  glm::vec3(1.5f,  2.0f, -2.5f),
-	  glm::vec3(1.5f,  0.2f, -1.5f),
-	  glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
+	CGLObject* Object = CObjLoader::Load("rsc/terrain.obj");
+	//CGLObject* Object = new CGLObject();
+	//Object->SetVertices({ {0.f,0.f,0.f},{1.f,0.f,0.f},{1.f,1.f,0.f} });
+	//Object->SetIndices({0,1,2});
+	Object->SetProgram(Shader1.Program);
+	Object->SetTexture(Texture);
+	Object->Prepare();
 
-	for (int i = 0; i < 10; i++)
-	{
-		CGLObject* Object = new CGLObject();
-		Object->SetVertices({
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	glm::mat4 model;
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+	//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+	Object->SetModel(model);
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-			});
-		//Triangle1->SetIndices({ 0,1,3,1,2,3 });
-		Object->SetProgram(Shader1.Program);
-		Object->SetTexture(Texture);
-		Object->Prepare();
-
-		glm::mat4 model;
-		model = glm::translate(model, cubePositions[i]);
-		GLfloat angle = 20.0f * i;
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-		Object->SetModel(model);
-
-		m_Objects.push_back(Object);
-	}
+	m_Objects.push_back(Object);
+	m_Terrain = Object;
 
 	glEnable(GL_DEPTH_TEST);
-	m_View = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -3.0f));
+	glfwGetCursorPos(m_Window->GetWindow(), &m_LastX, &m_LastY);
 }
 
 void CEngine::Start()
@@ -109,45 +55,64 @@ void CEngine::Start()
 
 void CEngine::OnDrow()
 {
-	//// Обновляем цвет формы
-	//m_Shaders[0].Use();
-	//double timeValue = glfwGetTime();
-	//GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
-	//GLint vertexColorLocation = glGetUniformLocation(m_Shaders[0].Program, "ourColor");
-	//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+	double currentFrame = glfwGetTime();
+	m_DeltaTime = currentFrame - m_LastFrame;
+	m_LastFrame = currentFrame;
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	DoMovement();
 
 	// Обратите внимание, что мы смещаем сцену в направлении обратном тому, в котором мы хотим переместиться
 	
 
-	m_Projection = glm::perspective(glm::radians(45.0f), 800.f/600.f, 0.1f, 10000.0f);
+	glm::mat4 View = m_Camera.GetView();
+	glm::mat4 Projection = glm::perspective(glm::radians(m_FOV), 800.f / 600.f, 0.1f, 10000.0f);
 
 	for (CGLObject* Object : m_Objects)
 	{
-		Object->Draw(m_View, m_Projection);
+		Object->Draw(View, Projection);
 	}
 }
 
 void CEngine::OnKey(int key, int scancode, int action, int mode)
 {
-	constexpr float SHIFT = 0.1;
-	constexpr float ANGLE = 5;
-	if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT))
-	{
-		m_View = glm::rotate(m_View, -glm::radians(ANGLE), {0.f,1.f,0.f});
-	}
-	else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT))
-	{
-		m_View = glm::rotate(m_View, glm::radians(ANGLE), { 0.f,1.f,0.f });
-	}
-	else if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT))
-	{
-		m_View = glm::translate(m_View, { 0.f,0.f,SHIFT });
-	}
-	else if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT))
-	{
-		m_View = glm::translate(m_View, { 0.f,0.f,-SHIFT });
-	}
+	if (action == GLFW_PRESS)
+		m_Keys[key] = true;
+	else if (action == GLFW_RELEASE)
+		m_Keys[key] = false;
+}
+
+void CEngine::OnMouseMove(double xpos, double ypos)
+{
+	double xoffset = xpos - m_LastX;
+	double yoffset = m_LastY - ypos; // Обратный порядок вычитания потому что оконные Y-координаты возрастают с верху вниз 
+	m_LastX = xpos;
+	m_LastY = ypos;
+
+	const double sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	m_Camera.Rotate(static_cast<GLfloat>(xoffset), static_cast<GLfloat>(yoffset));
+}
+
+void CEngine::OnScroll(double xoffset, double yoffset)
+{
+	if (m_FOV >= 1.0f && m_FOV <= 45.0f)
+		m_FOV -= static_cast<GLfloat>(yoffset);
+	m_FOV = std::max(m_FOV, 1.0f);
+	m_FOV = std::min(m_FOV, 45.0f);
+}
+
+void CEngine::DoMovement()
+{
+	if (m_Keys[GLFW_KEY_W])
+		m_Camera.Move(EDirection::Forward, static_cast<GLfloat>(m_DeltaTime));
+	if (m_Keys[GLFW_KEY_S])
+		m_Camera.Move(EDirection::Back , static_cast<GLfloat>(m_DeltaTime));
+	if (m_Keys[GLFW_KEY_A])
+		m_Camera.Move(EDirection::Left, static_cast<GLfloat>(m_DeltaTime));
+	if (m_Keys[GLFW_KEY_D])
+		m_Camera.Move(EDirection::Right, static_cast<GLfloat>(m_DeltaTime));
 }
