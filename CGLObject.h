@@ -5,29 +5,41 @@
 
 class CGLObject
 {
+protected:
 	GLuint VAO, m_Propgram;
-	GLuint m_VertexBuffer, m_UVBuffer, m_NormalBuffer;
-	GLuint m_VertexElementBuffer, m_UVElementBuffer, m_NormalElementBuffer;
-	CTexture m_Texture;
+	GLuint m_VertexBuffer;
+	GLuint m_VertexElementBuffer;
 	std::vector<glm::vec3> m_Vertices;
-	std::vector<glm::vec2> m_UVs;
-	std::vector<glm::vec3> m_Normales;
-	std::vector<GLuint> m_VertexIndices, m_UVIndices, m_NormalIndices;
+	
+	std::vector<GLuint> m_VertexIndices;
 	glm::mat4 m_Model;
 	std::vector<CUniformParam*> m_UniformParams;
-private:
-	bool HasTexture() const;
 public:
 	CGLObject();
 	~CGLObject();
 	void SetProgram(GLuint Program);
-	void Draw(const glm::mat4& View, const glm::mat4& Projection);
+	virtual void Draw(const std::vector<CUniformParam*>& Params);
 	void SetVertices(const std::vector<glm::vec3>& Vertices);
 	void SetIndices(const std::vector<GLuint>& Indices);
-	void SetUVs(const std::vector<glm::vec2>& UVs);
-	void SetTexture(CTexture Texture);
+	
 	void SetModel(const glm::mat4& Model);
 	void AddUniformParam(CUniformParam* Param);
-	void Prepare();
+	virtual void Prepare();
+};
+
+class CGlMesh : public CGLObject
+{
+	GLuint m_UVBuffer, m_NormalBuffer;
+	CTexture m_Texture;
+	std::vector<glm::vec2> m_UVs;
+	std::vector<glm::vec3> m_Normales;
+
+	bool HasTexture() const;
+public:
+	virtual void Draw(const std::vector<CUniformParam*>& Params);
+	void SetUVs(const std::vector<glm::vec2>& UVs);
+	void SetTexture(CTexture Texture);
+	void SetNormales(const std::vector<glm::vec3>& Normales);
+	virtual void Prepare();
 };
 

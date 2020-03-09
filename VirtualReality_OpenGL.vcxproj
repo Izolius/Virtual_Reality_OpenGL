@@ -144,8 +144,8 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="shaders\frag.glsl" />
-    <None Include="shaders\frag2.glsl" />
-    <None Include="shaders\terrain_vert.glsl" />
+    <None Include="shaders\light_frag.glsl" />
+    <None Include="shaders\light_vert.glsl" />
     <None Include="shaders\vert.glsl" />
   </ItemGroup>
   <ItemGroup>

@@ -10,14 +10,16 @@ public:
 class CUniformParam_mat4 : public CUniformParam
 {
 public:
-	glm::mat4 Value;
+	const glm::mat4& Value;
 	virtual void Set(GLuint Program) override;
+	CUniformParam_mat4(const glm::mat4& Value, const std::string& Name);
 };
 
 class CUniformParam_vec3 : public CUniformParam
 {
 public:
-	glm::vec3 Value;
+	const glm::vec3& Value;
 	virtual void Set(GLuint Program) override;
+	CUniformParam_vec3(const glm::vec3& Value, const std::string& Name);
 };
 

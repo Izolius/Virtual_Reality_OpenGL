@@ -9,8 +9,8 @@
 #include <cmath>
 #include <string>
 #include <exception>
-
+#include <array>
+#include <vector>
 
 #include "CTexture.h"
-#include "CGLObject.h"
 #include "ShaderUtils.h"

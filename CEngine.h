@@ -1,8 +1,8 @@
 #pragma once
 #include "CCamera.h"
-#include <array>
+#include "CTexture.h"
 class CWindow;
-
+class CGLObject;
 class CEngine
 {
 	CWindow* m_Window;
@@ -15,6 +15,8 @@ class CEngine
 	double m_LastFrame = 0.0f, m_DeltaTime;
 	double m_LastX = 400, m_LastY = 300;
 	GLfloat m_FOV = 45.0f;
+
+	glm::vec3 m_LightPos = { 1.2f, 1.0f, 2.0f };
 	
 public:
 	CEngine(CWindow* Window);

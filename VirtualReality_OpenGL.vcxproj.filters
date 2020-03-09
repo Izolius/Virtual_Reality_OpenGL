@@ -19,13 +19,13 @@
     <None Include="shaders\frag.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="shaders\frag2.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shaders\terrain_vert.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="shaders\vert.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\light_frag.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\light_vert.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

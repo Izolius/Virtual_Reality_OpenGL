@@ -3,6 +3,7 @@
 #include "CWindow.h"
 #include "ShaderUtils.h"
 #include "CObjLoader.h"
+#include "CGLObject.h"
 
 CEngine::CEngine(CWindow* Window):
 	m_Window(Window)
@@ -19,30 +20,50 @@ CEngine::~CEngine()
 
 void CEngine::Prepare()
 {
-	CShader Shader1; Shader1.Load("shaders/vert.glsl", "shaders/frag.glsl");
-	CShader Shader2; Shader2.Load("shaders/vert.glsl", "shaders/frag2.glsl");
-	CTexture Texture;
-	Texture.Load("rsc/terrain.jpg");
-	CTexture Terrain;
-	Terrain.Load("rsc/terrain.bmp");
-	m_Shaders.push_back(Shader1);
-	m_Shaders.push_back(Shader2);
+	if (true)
+	{
+		CTexture Texture;
+		Texture.Load("rsc/box.jpg");
+		CShader Shader; Shader.Load("shaders/vert.glsl", "shaders/frag.glsl");
+		m_Shaders.push_back(Shader);
 
-	CGLObject* Object = CObjLoader::Load("rsc/terrain.obj");
-	//CGLObject* Object = new CGLObject();
-	//Object->SetVertices({ {0.f,0.f,0.f},{1.f,0.f,0.f},{1.f,1.f,0.f} });
-	//Object->SetIndices({0,1,2});
-	Object->SetProgram(Shader1.Program);
-	Object->SetTexture(Texture);
-	Object->Prepare();
+		CGlMesh* Object = CObjLoader::Load("rsc/box.obj");
+		Object->SetProgram(Shader.Program);
+		Object->SetTexture(Texture);
+		Object->Prepare();
 
-	glm::mat4 model;
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
-	Object->SetModel(model);
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+		Object->SetModel(model);
 
-	m_Objects.push_back(Object);
-	m_Terrain = Object;
+		Object->AddUniformParam(new CUniformParam_vec3(glm::vec3{ 1.0f, 0.5f, 0.31f }, "objectColor"));
+		m_Objects.push_back(Object);
+		m_Terrain = Object;
+	}
+
+	if (false)
+	{
+		CTexture Texture;
+		Texture.Load("rsc/box.jpg");
+		CShader Shader; Shader.Load("shaders/light_vert.glsl", "shaders/light_frag.glsl");
+		m_Shaders.push_back(Shader);
+
+		CGlMesh* Object = CObjLoader::Load("rsc/box.obj");
+		Object->SetProgram(Shader.Program);
+		//Object->SetTexture(Texture);
+		Object->Prepare();
+
+		glm::mat4 model;
+		model = glm::translate(model, m_LightPos);
+		model = glm::scale(model, {0.1f,0.1f, 0.1f});
+		//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+		Object->SetModel(model);
+
+		m_Objects.push_back(Object);
+
+		Object->AddUniformParam(new CUniformParam_vec3({ 1.0f, 0.5f, 0.31f }, "objectColor"));
+	}
 
 	glEnable(GL_DEPTH_TEST);
 	glfwGetCursorPos(m_Window->GetWindow(), &m_LastX, &m_LastY);
@@ -69,9 +90,15 @@ void CEngine::OnDrow()
 	glm::mat4 View = m_Camera.GetView();
 	glm::mat4 Projection = glm::perspective(glm::radians(m_FOV), 800.f / 600.f, 0.1f, 10000.0f);
 
+	std::vector<CUniformParam*> Params;
+	Params.push_back(new CUniformParam_mat4(View, "view"));
+	Params.push_back(new CUniformParam_mat4(Projection, "projection"));
+	Params.push_back(new CUniformParam_vec3(m_LightPos, "lightPos"));
+	Params.push_back(new CUniformParam_vec3({ 1.0f, 1.0f, 1.0f }, "lightColor"));
+
 	for (CGLObject* Object : m_Objects)
 	{
-		Object->Draw(View, Projection);
+		Object->Draw(Params);
 	}
 }
 

@@ -41,7 +41,7 @@ void CCamera::Move(EDirection Direction, GLfloat cameraSpeed)
 	default:
 		break;
 	}
-	std::cout << Position.x<<' ' << Position.y << ' ' << Position.z << ' ' << std::endl;
+	//std::cout << Position.x<<' ' << Position.y << ' ' << Position.z << ' ' << std::endl;
 }
 
 void CCamera::Rotate(const glm::vec3& Angle)

@@ -1,7 +1,8 @@
 #pragma once
+class CGlMesh;
 class CObjLoader
 {
 public:
-	static CGLObject* Load(const std::string& file);
+	static CGlMesh* Load(const std::string& file);
 };
 

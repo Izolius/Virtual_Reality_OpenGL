@@ -2,8 +2,9 @@
 #include "CObjLoader.h"
 #include <cstdio>
 #include "OBJ_Loader.h"
+#include "CGLObject.h"
 
-CGLObject* CObjLoader::Load(const std::string& FileName)
+CGlMesh* CObjLoader::Load(const std::string& FileName)
 {
 	objl::Loader Loader;
 	bool loadout = Loader.LoadFile(FileName);
@@ -32,9 +33,10 @@ CGLObject* CObjLoader::Load(const std::string& FileName)
 	}
 	
 
-	CGLObject* result = new CGLObject();
+	CGlMesh* result = new CGlMesh();
 	result->SetVertices(std::move(temp_vertices));
 	result->SetIndices(std::move(Loader.LoadedIndices));
 	result->SetUVs(std::move(temp_uvs));
+	result->SetNormales(std::move(temp_normals));
 	return result;
 }
