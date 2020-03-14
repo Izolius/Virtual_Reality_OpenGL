@@ -29,6 +29,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	engine->OnScroll(xoffset, yoffset);
 }
 
+void click_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	CEngine* engine = reinterpret_cast<CEngine*>(glfwGetWindowUserPointer(window));
+	engine->OnClick(button, action, mods);
+}
+
 CWindow::CWindow()
 {
 	m_Window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
@@ -41,6 +47,7 @@ CWindow::CWindow()
 	glfwMakeContextCurrent(m_Window);
 	glfwSetKeyCallback(m_Window, key_callback);
 	glfwSetCursorPosCallback(m_Window, mouse_callback);
+	glfwSetMouseButtonCallback(m_Window, click_callback);
 	glfwSetScrollCallback(m_Window, scroll_callback);
 	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }

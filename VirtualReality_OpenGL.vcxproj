@@ -117,6 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,12 +145,18 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="shaders\frag.glsl" />
+    <None Include="shaders\frag_color_picking.glsl" />
+    <None Include="shaders\frag_cube.glsl" />
+    <None Include="shaders\frag_texture.glsl" />
     <None Include="shaders\light_frag.glsl" />
     <None Include="shaders\light_vert.glsl" />
     <None Include="shaders\vert.glsl" />
+    <None Include="shaders\vert_color_picking.glsl" />
+    <None Include="shaders\vert_cube.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CCamera.cpp" />
+    <ClCompile Include="CColorPicker.cpp" />
     <ClCompile Include="CEngine.cpp" />
     <ClCompile Include="CGLObject.cpp" />
     <ClCompile Include="CObjLoader.cpp" />
@@ -161,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CCamera.h" />
+    <ClInclude Include="CColorPicker.h" />
     <ClInclude Include="CEngine.h" />
     <ClInclude Include="CGLObject.h" />
     <ClInclude Include="CObjLoader.h" />

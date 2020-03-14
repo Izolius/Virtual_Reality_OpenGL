@@ -28,6 +28,21 @@
     <None Include="shaders\light_vert.glsl">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\frag_texture.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\vert_cube.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\frag_cube.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\vert_color_picking.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\frag_color_picking.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -55,6 +70,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CUniformParam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CColorPicker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -87,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OBJ_Loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CColorPicker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

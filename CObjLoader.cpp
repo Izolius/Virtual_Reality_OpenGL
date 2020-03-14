@@ -4,7 +4,7 @@
 #include "OBJ_Loader.h"
 #include "CGLObject.h"
 
-CGlMesh* CObjLoader::Load(const std::string& FileName)
+CGLMesh* CObjLoader::Load(const std::string& FileName)
 {
 	objl::Loader Loader;
 	bool loadout = Loader.LoadFile(FileName);
@@ -33,10 +33,70 @@ CGlMesh* CObjLoader::Load(const std::string& FileName)
 	}
 	
 
-	CGlMesh* result = new CGlMesh();
+	CGLMesh* result = new CGLMesh();
 	result->SetVertices(std::move(temp_vertices));
 	result->SetIndices(std::move(Loader.LoadedIndices));
 	result->SetUVs(std::move(temp_uvs));
 	result->SetNormales(std::move(temp_normals));
 	return result;
+}
+
+CGLMesh* CObjLoader::LoadCube()
+{
+    std::vector<float> skyboxVertices({
+        // positions          
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f
+    });
+
+    std::vector<glm::vec3> Vertices;
+    Vertices.reserve(skyboxVertices.size() / 3);
+
+    for (size_t i = 0; i < skyboxVertices.size(); i+=3)
+    {
+        Vertices.push_back(glm::vec3(skyboxVertices[i], skyboxVertices[i + 1], skyboxVertices[i + 2]));
+    }
+
+    CGLMesh* result = new CGLMesh();
+    result->SetVertices(Vertices);
+    return result;
 }

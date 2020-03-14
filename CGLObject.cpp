@@ -1,10 +1,15 @@
 #include "stdafx.h"
 #include "CGLObject.h"
+#include <algorithm>
+#include <numeric>
 using namespace std;
+
+int s_UniqueColor = 0;
 
 CGLObject::CGLObject()
 {
-	
+	m_UniqueColor = glm::vec3(0, s_UniqueColor / 255, s_UniqueColor % 255);
+	s_UniqueColor++;
 }
 
 CGLObject::~CGLObject()
@@ -12,9 +17,19 @@ CGLObject::~CGLObject()
 	glDeleteVertexArrays(1, &VAO);
 }
 
+glm::vec<3, unsigned char> CGLObject::GetUniqueColor() const
+{
+	return m_UniqueColor;
+}
+
 void CGLObject::SetProgram(GLuint Program)
 {
 	m_Propgram = Program;
+}
+
+GLuint CGLObject::GetProgram() const
+{
+	return m_Propgram;
 }
 
 void CGLObject::Draw(const std::vector<CUniformParam*>& Params)
@@ -81,35 +96,41 @@ void CGLObject::AddUniformParam(CUniformParam* Param)
 	m_UniformParams.push_back(Param);
 }
 
-void CGlMesh::SetUVs(const std::vector<glm::vec2>& UVs)
+void CGLMesh::SetUVs(const std::vector<glm::vec2>& UVs)
 {
 	m_UVs = UVs;
 }
 
-void CGlMesh::SetTexture(CTexture Texture)
+void CGLMesh::SetTexture(CTexture Texture)
 {
 	m_Texture = Texture;
 }
 
-void CGlMesh::SetNormales(const std::vector<glm::vec3>& Normales)
+void CGLMesh::SetNormales(const std::vector<glm::vec3>& Normales)
 {
 	m_Normales = Normales;
 }
 
-bool CGlMesh::HasTexture() const
+bool CGLMesh::HasTexture() const
 {
 	return m_Texture.Texture != -1;
 }
 
-void CGlMesh::Draw(const std::vector<CUniformParam*>& Params)
+void CGLMesh::Draw(const std::vector<CUniformParam*>& Params)
 {
+	if (ObjectType == EObjectType::SkyBox)
+		glDepthMask(GL_FALSE);
 	glUseProgram(m_Propgram);
 
 	if (HasTexture())
-		glBindTexture(GL_TEXTURE_2D, m_Texture.Texture);
+		if (m_Texture.Coords == 2)
+			glBindTexture(GL_TEXTURE_2D, m_Texture.Texture);
+		else
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_Texture.Texture);
 
 	GLint modelLoc = glGetUniformLocation(m_Propgram, "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_Model));
+	if (modelLoc != -1)
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_Model));
 
 	for (CUniformParam* Param : m_UniformParams)
 		Param->Set(m_Propgram);
@@ -122,9 +143,12 @@ void CGlMesh::Draw(const std::vector<CUniformParam*>& Params)
 		glDrawElements(GL_TRIANGLES, m_VertexIndices.size(), GL_UNSIGNED_INT, 0);
 	else
 		glDrawArrays(GL_TRIANGLES, 0, m_Vertices.size());
+
+	if (ObjectType == EObjectType::SkyBox)
+		glDepthMask(GL_TRUE);
 }
 
-void CGlMesh::Prepare()
+void CGLMesh::Prepare()
 {
 	if (m_Vertices.size() == 0)
 		throw exception("No Vertices");
@@ -172,4 +196,94 @@ void CGlMesh::Prepare()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+}
+
+float MAX_SIZE = 100, STEP_SIZE = 1;
+
+void CGLTerrain::InitGrid()
+{
+	m_Vertices.resize(m_HeightMap.Width * m_HeightMap.Height);
+	m_VertexIndices.reserve(m_HeightMap.Width * m_HeightMap.Height * 6);
+	vector<vector<GLuint>> Indices(m_HeightMap.Height, vector<GLuint>(m_HeightMap.Width));
+	int Index = 0;
+	float HalfWidth = m_HeightMap.Width / 2.0, HalfHeight = m_HeightMap.Height / 2.0;
+	for (int z = 0; z < m_HeightMap.Height; z += STEP_SIZE)
+	{
+		for (int x = 0; x < m_HeightMap.Width; x += STEP_SIZE)
+		{
+			m_Vertices[z * m_HeightMap.Width + x] =
+				glm::vec3((x - HalfWidth) / HalfWidth, GetHeight(x, z), (z - HalfHeight) / HalfHeight);
+			Indices[z][x] = Index++;
+		}
+	}
+
+	
+
+	for (int x = 0; x < m_HeightMap.Width - STEP_SIZE; x += STEP_SIZE)
+	{
+		for (int z = 0; z < m_HeightMap.Height - STEP_SIZE; z += STEP_SIZE)
+		{
+			m_VertexIndices.insert(m_VertexIndices.end(),
+				{ Indices[z][x], Indices[z][x + STEP_SIZE],Indices[z + STEP_SIZE][x] });
+			m_VertexIndices.insert(m_VertexIndices.end(),
+				{ Indices[z][x + STEP_SIZE],Indices[z + STEP_SIZE][x],Indices[z + STEP_SIZE][x + STEP_SIZE] });
+		}
+	}
+
+	m_UVs.resize(m_HeightMap.Width * m_HeightMap.Height);
+	float UV_STEP = STEP_SIZE / m_HeightMap.Width;
+	float u = 0, v = 0;
+	for (int z = 0; z < m_HeightMap.Height; z += STEP_SIZE, u += UV_STEP)
+	{
+		for (int x = 0; x < m_HeightMap.Width; x += STEP_SIZE, v += UV_STEP)
+		{
+			m_UVs[z * m_HeightMap.Width + x] = glm::vec2(1 - u, v);
+		}
+	}
+
+	m_Normales.resize(m_HeightMap.Width * m_HeightMap.Height);
+
+	for (int z = 0; z < m_HeightMap.Height; z += STEP_SIZE)
+	{
+		for (int x = 0; x < m_HeightMap.Width; x += STEP_SIZE)
+		{
+			vector<glm::vec3> Normales;
+			if (z > 0)
+				Normales.push_back(m_Vertices[(z - 1) * m_HeightMap.Width + x]);
+			if (z < m_HeightMap.Height - 1)
+				Normales.push_back(m_Vertices[(z + 1) * m_HeightMap.Width + x]);
+			if (x > 0)
+				Normales.push_back(m_Vertices[z * m_HeightMap.Width + x - 1]);
+			if (x < m_HeightMap.Width - 1)
+				Normales.push_back(m_Vertices[z * m_HeightMap.Width + x + 1]);
+
+			for (auto& Neighbor : Normales)
+				Neighbor = m_Vertices[z * m_HeightMap.Width + x] - Neighbor;
+
+			for (size_t i = 0; i < Normales.size(); i++)
+			{
+				Normales[i] = glm::cross(Normales[i], Normales[(i + 1) % Normales.size()]);
+			}
+			m_Normales[z * m_HeightMap.Width + x] =
+				std::accumulate(Normales.begin(), Normales.end(), glm::vec3(0.f, 0.f, 0.f)) / (float)Normales.size();
+		}
+	}
+	
+}
+
+float CGLTerrain::GetHeight(int x, int z)
+{
+	float Height = m_HeightMap.GetHeight(x, m_HeightMap.Width - z - 1);
+	return Height / 255.0f;
+}
+
+void CGLTerrain::Prepare()
+{
+	InitGrid();
+	CGLMesh::Prepare();
+}
+
+void CGLTerrain::SetHeightMap(const CHeightMap& HeightMap)
+{
+	m_HeightMap = HeightMap;
 }
