@@ -29,6 +29,8 @@ class CEngine
 
 	glm::vec3 m_LightPos;
 	std::unique_ptr<CColorPicker> m_ColorPicker;
+	bool m_OnlyColorPicking = false;
+	CGLObject* m_PickedObject;
 	
 public:
 	CEngine(CWindow* Window);
@@ -42,6 +44,7 @@ public:
 	void OnScroll(double xoffset, double yoffset);
 	void OnClick(int button, int action, int mods);
 	void DoMovement();
+	void PickObject(CGLObject* Object);
 
 	std::vector<CGLObject*>& GetObjects();
 	glm::vec<2, double> GetCursor() const;

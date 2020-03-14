@@ -26,3 +26,16 @@ CUniformParam_vec3::CUniformParam_vec3(const glm::vec3& Value, const std::string
 {
 	this->Name = Name;
 }
+
+void CUniformParam_vec4::Set(GLuint Program)
+{
+	GLint Location = glGetUniformLocation(Program, Name.c_str());
+	if (Location != -1)
+		glUniform4f(Location, Value.r, Value.g, Value.b, Value.a);
+}
+
+CUniformParam_vec4::CUniformParam_vec4(const glm::vec4& Value, const std::string& Name) :
+	Value(Value)
+{
+	this->Name = Name;
+}

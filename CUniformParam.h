@@ -23,3 +23,10 @@ public:
 	CUniformParam_vec3(const glm::vec3& Value, const std::string& Name);
 };
 
+class CUniformParam_vec4 : public CUniformParam
+{
+public:
+	const glm::vec4& Value;
+	virtual void Set(GLuint Program) override;
+	CUniformParam_vec4(const glm::vec4& Value, const std::string& Name);
+};

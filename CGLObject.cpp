@@ -5,11 +5,20 @@
 using namespace std;
 
 int s_UniqueColor = 0;
+std::vector<glm::vec<4, unsigned char>> s_UniqueColors({
+	glm::vec<4, unsigned char>({0,0,100,255}),
+	glm::vec<4, unsigned char>({0,100,0,255}),
+	glm::vec<4, unsigned char>({100,0,0,255}),
+	glm::vec<4, unsigned char>({100,100,0,255}),
+	glm::vec<4, unsigned char>({0,100,100,255}),
+	glm::vec<4, unsigned char>({100,0,100,255}),
+	glm::vec<4, unsigned char>({100,50,0,255}),
+	glm::vec<4, unsigned char>({100,0,50,255}),
+	});
 
 CGLObject::CGLObject()
 {
-	m_UniqueColor = glm::vec3(0, s_UniqueColor / 255, s_UniqueColor % 255);
-	s_UniqueColor++;
+	m_UniqueColor = s_UniqueColors[s_UniqueColor++];
 }
 
 CGLObject::~CGLObject()
@@ -17,7 +26,7 @@ CGLObject::~CGLObject()
 	glDeleteVertexArrays(1, &VAO);
 }
 
-glm::vec<3, unsigned char> CGLObject::GetUniqueColor() const
+glm::vec<4, unsigned char> CGLObject::GetUniqueColor() const
 {
 	return m_UniqueColor;
 }
@@ -89,6 +98,11 @@ void CGLObject::SetIndices(const std::vector<GLuint>& Indices)
 void CGLObject::SetModel(const glm::mat4& Model)
 {
 	m_Model = Model;
+}
+
+glm::mat4 CGLObject::GetModel() const
+{
+	return m_Model;
 }
 
 void CGLObject::AddUniformParam(CUniformParam* Param)

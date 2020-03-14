@@ -6,10 +6,13 @@
 #include "CGLObject.h"
 #include "CColorPicker.h"
 #include <iostream>
+using namespace std;
 
 CEngine::CEngine(CWindow* Window):
 	m_Window(Window), m_LightPos(3.0f, 2.0f, 2.0f)
 {
+	cout << "c - to switch cursor mode" << endl;
+	cout << "p - to switch color pick drawinig mode" << endl;
 }
 
 CEngine::~CEngine()
@@ -72,6 +75,51 @@ void CEngine::Prepare()
 		glm::mat4 model;
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+		Object->SetModel(model);
+
+		//Object->AddUniformParam(new CUniformParam_vec3(glm::vec3(1.0f, 0.5f, 0.31f), "objectColor"));
+		m_Objects.push_back(Object);
+		m_Terrain = Object;
+	}
+
+	if (true)
+	{
+		CTexture Texture;
+		Texture.Load("rsc/box.jpg");
+		CShader Shader; Shader.Load("shaders/vert.glsl", "shaders/frag_texture.glsl");
+		m_Shaders.push_back(Shader);
+
+		CGLMesh* Object = CObjLoader::Load("rsc/box.obj");
+		Object->SetProgram(Shader.Program);
+		Object->SetTexture(Texture);
+		Object->Prepare();
+
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(10.0f, 10.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+		Object->SetModel(model);
+
+		//Object->AddUniformParam(new CUniformParam_vec3(glm::vec3(1.0f, 0.5f, 0.31f), "objectColor"));
+		m_Objects.push_back(Object);
+		m_Terrain = Object;
+	}
+
+	if (true)
+	{
+		CTexture Texture;
+		Texture.Load("rsc/terrain.jpg");
+		CShader Shader; Shader.Load("shaders/vert.glsl", "shaders/frag_texture.glsl");
+		m_Shaders.push_back(Shader);
+
+		CGLMesh* Object = CObjLoader::Load("rsc/terrain.obj");
+		Object->SetProgram(Shader.Program);
+		Object->SetTexture(Texture);
+		Object->Prepare();
+
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(10.0f, -5.0f, 0.0f));
+		//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+		model = glm::scale(model, glm::vec3(10.f));
 		Object->SetModel(model);
 
 		//Object->AddUniformParam(new CUniformParam_vec3(glm::vec3(1.0f, 0.5f, 0.31f), "objectColor"));
@@ -145,27 +193,46 @@ void CEngine::OnDrow()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	DoMovement();
 
-	if (m_ColorPicker->Enabled())
+	if (m_OnlyColorPicking)
 	{
-		if (CGLObject* Picked = m_ColorPicker->Pick(this))
-		{
-			std::cout << (int)Picked->ObjectType << std::endl;
-		}
+		m_ColorPicker->Enable();
+		m_ColorPicker->Draw(this);
 		m_ColorPicker->Disable();
 	}
+	else
+	{
+		if (m_ColorPicker->Enabled())
+		{
+			if (CGLObject* Picked = m_ColorPicker->Pick(this))
+			{
+				//std::cout << (int)Picked->ObjectType << std::endl;
+				auto index = std::distance(m_Objects.begin(), std::find(m_Objects.begin(), m_Objects.end(), Picked));
+				cout << "Picked object index " << index << endl;
+				PickObject(Picked);
+			}
+			m_ColorPicker->Disable();
+		}
+		DrawObjects();
+	}
 
-	DrawObjects();
-
-	//for (CGLObject* Object : m_Objects)
-	//{
-	//	Object->Draw(Params);
-	//}
+	
 }
 
 void CEngine::DrawObjects()
 {
 	glm::mat4 View = m_Camera.GetView();
-	glm::mat4 Projection = glm::perspective(glm::radians(m_FOV), 800.f / 600.f, 0.1f, 10000.0f);
+	//glm::mat4 Projection = glm::perspective(glm::radians(m_FOV), 800.f / 600.f, 0.1f, 10000.0f);
+
+	const float Near = 0.1f, Far = 10000.f;
+	float top, bottom, left, right;
+	float Aspect = 800.f / 600.f;
+	GLfloat FOV = glm::radians(m_FOV);
+	top = Near * tan(FOV / 2);
+	bottom = -top;
+	right = Aspect * tan(FOV / 2) * Near;
+	left = -left;
+
+	glm::mat4 Projection = glm::frustum(left, right, bottom, top, Near, Far);
 
 	std::vector<CUniformParam*> Params;
 	Params.push_back(new CUniformParam_mat4(View, "view"));
@@ -175,10 +242,12 @@ void CEngine::DrawObjects()
 
 	for (size_t i = 0; i < m_Objects.size(); i++)
 	{
+		glm::vec4 PickingColor = m_Objects[i]->GetUniqueColor();
+		PickingColor /= 255.f;
 		std::vector<CUniformParam*> LocalParams(Params);
 		if (m_ColorPicker->Enabled())
 		{
-			LocalParams.push_back(new CUniformParam_vec3(m_Objects[i]->GetUniqueColor(), "PickingColor"));
+			LocalParams.push_back(new CUniformParam_vec4(PickingColor, "PickingColor"));
 		}
 
 		switch (m_Objects[i]->ObjectType)
@@ -188,6 +257,7 @@ void CEngine::DrawObjects()
 			std::vector<CUniformParam*> Params;
 			Params.push_back(new CUniformParam_mat4(glm::mat4(glm::mat3(m_Camera.GetView())), "view"));
 			Params.push_back(new CUniformParam_mat4(Projection, "projection"));
+			Params.push_back(new CUniformParam_vec4(PickingColor, "PickingColor"));
 			m_Objects[i]->Draw(Params);
 			break;
 		}
@@ -225,6 +295,11 @@ void CEngine::OnKey(int key, int scancode, int action, int mode)
 			glfwSetInputMode(m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			m_CursorMode = ECursorMode::Normal;
 		}
+	}
+
+	if (key == GLFW_KEY_P && action == GLFW_RELEASE)
+	{
+		m_OnlyColorPicking = !m_OnlyColorPicking;
 	}
 }
 
@@ -271,6 +346,26 @@ void CEngine::DoMovement()
 		m_Camera.Move(EDirection::Left, static_cast<GLfloat>(m_DeltaTime));
 	if (m_Keys[GLFW_KEY_D])
 		m_Camera.Move(EDirection::Right, static_cast<GLfloat>(m_DeltaTime));
+}
+
+void CEngine::PickObject(CGLObject* Object)
+{
+	if (m_PickedObject)
+	{
+		auto Model = m_PickedObject->GetModel();
+		m_PickedObject->SetModel(glm::translate(Model, glm::vec3(0.f, -1.f, 0.f)));
+	}
+
+	if (Object->ObjectType == EObjectType::SkyBox)
+		m_PickedObject = nullptr;
+	else if (m_PickedObject != Object)
+	{
+		m_PickedObject = Object;
+		auto Model = m_PickedObject->GetModel();
+		m_PickedObject->SetModel(glm::translate(Model, glm::vec3(0.f, 1.f, 0.f)));
+	}
+	else
+		m_PickedObject = nullptr;
 }
 
 std::vector<CGLObject*>& CEngine::GetObjects()

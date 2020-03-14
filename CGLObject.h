@@ -19,13 +19,13 @@ protected:
 	std::vector<GLuint> m_VertexIndices;
 	glm::mat4 m_Model;
 	std::vector<CUniformParam*> m_UniformParams;
-	glm::vec<3, int> m_UniqueColor;
+	glm::vec<4, unsigned char> m_UniqueColor;
 public:
 	EObjectType ObjectType = EObjectType::Common;
 
 	CGLObject();
 	~CGLObject();
-	glm::vec<3,unsigned char> GetUniqueColor() const;
+	glm::vec<4,unsigned char> GetUniqueColor() const;
 	void SetProgram(GLuint Program);
 	GLuint GetProgram() const;
 	virtual void Draw(const std::vector<CUniformParam*>& Params);
@@ -33,6 +33,7 @@ public:
 	void SetIndices(const std::vector<GLuint>& Indices);
 	
 	void SetModel(const glm::mat4& Model);
+	glm::mat4 GetModel() const;
 	void AddUniformParam(CUniformParam* Param);
 	virtual void Prepare();
 };

@@ -4,6 +4,27 @@
 #include "CEngine.h"
 using namespace std;
 
+void CColorPicker::BeforeDraw(CEngine* Engine)
+{
+	auto& Objects = Engine->GetObjects();
+	Programs.clear();
+	Programs.reserve(Objects.size());
+	for (CGLObject* Object : Objects)
+	{
+		Programs.push_back(Object->GetProgram());
+		Object->SetProgram(m_PickerProgram);
+	}
+}
+
+void CColorPicker::AfterDraw(CEngine* Engine)
+{
+	auto& Objects = Engine->GetObjects();
+	for (size_t i = 0; i < Objects.size(); i++)
+	{
+		Objects[i]->SetProgram(Programs[i]);
+	}
+}
+
 CColorPicker::CColorPicker(GLuint PickerProgram):
 	m_PickerProgram(PickerProgram)
 {
@@ -12,13 +33,7 @@ CColorPicker::CColorPicker(GLuint PickerProgram):
 CGLObject* CColorPicker::Pick(CEngine* Engine)
 {
 	auto& Objects = Engine->GetObjects();
-	vector<GLuint> Programs;
-	Programs.reserve(Objects.size());
-	for (CGLObject* Object : Objects)
-	{
-		Programs.push_back(Object->GetProgram());
-		Object->SetProgram(m_PickerProgram);
-	}
+	BeforeDraw(Engine);
 
 	Engine->DrawObjects();
 
@@ -31,21 +46,33 @@ CGLObject* CColorPicker::Pick(CEngine* Engine)
 	GLint x, y;
 	x = Engine->GetCursor().x;
 	y = Engine->GetCursor().y;
-	glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
-	// TODO: возвращает не ту дату
+
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glReadPixels(x, viewport[3] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
 
 	CGLObject* result = nullptr;
 
 	for (size_t i=0;i<Objects.size();i++)
 	{
-		if (Objects[i]->GetUniqueColor() == glm::vec<3, unsigned char>(data))
+		if (Objects[i]->GetUniqueColor() == data)
 		{
 			result = Objects[i];
 		}
-		Objects[i]->SetProgram(Programs[i]);
 	}
 
-	return nullptr;
+	AfterDraw(Engine);
+
+	return result;
+}
+
+void CColorPicker::Draw(CEngine* Engine)
+{
+	BeforeDraw(Engine);
+
+	Engine->DrawObjects();
+
+	AfterDraw(Engine);
 }
 
 void CColorPicker::Enable()
