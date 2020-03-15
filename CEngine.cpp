@@ -8,11 +8,31 @@
 #include <iostream>
 using namespace std;
 
+std::ostream& operator<<(std::ostream& stream, EChangedOption option)
+{
+	switch (option)
+	{
+	case EChangedOption::FOV:
+		stream << "FOV";
+		break;
+	case EChangedOption::Convergence:
+		stream << "Convergence";
+		break;
+	case EChangedOption::EyeDistance:
+		stream << "EyeDistance";
+		break;
+	default:
+		break;
+	}
+	return stream;
+}
+
 CEngine::CEngine(CWindow* Window):
 	m_Window(Window), m_LightPos(3.0f, 2.0f, 2.0f)
 {
 	cout << "c - to switch cursor mode" << endl;
-	cout << "p - to switch color pick drawinig mode" << endl;
+	cout << "m - to switch view mode" << endl;
+	cout << "o - to switch changed param" << endl;
 }
 
 CEngine::~CEngine()
@@ -73,7 +93,7 @@ void CEngine::Prepare()
 		Object->Prepare();
 
 		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0f));
 		//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
 		Object->SetModel(model);
 
@@ -193,19 +213,13 @@ void CEngine::OnDrow()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	DoMovement();
 
-	if (m_OnlyColorPicking)
+	switch (m_ViewMode)
 	{
-		m_ColorPicker->Enable();
-		m_ColorPicker->Draw(this);
-		m_ColorPicker->Disable();
-	}
-	else
-	{
+	case EViewMode::Normal:
 		if (m_ColorPicker->Enabled())
 		{
 			if (CGLObject* Picked = m_ColorPicker->Pick(this))
 			{
-				//std::cout << (int)Picked->ObjectType << std::endl;
 				auto index = std::distance(m_Objects.begin(), std::find(m_Objects.begin(), m_Objects.end(), Picked));
 				cout << "Picked object index " << index << endl;
 				PickObject(Picked);
@@ -213,26 +227,31 @@ void CEngine::OnDrow()
 			m_ColorPicker->Disable();
 		}
 		DrawObjects();
+		break;
+	case EViewMode::ColorPick:
+		m_ColorPicker->Enable();
+		m_ColorPicker->Draw(this);
+		m_ColorPicker->Disable();
+		break;
+	case EViewMode::Anaglyph:
+		m_Camera.SetEyePos(EEyePos::Left);
+		glColorMask(true, false, false, false);
+		DrawObjects();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		m_Camera.SetEyePos(EEyePos::Right);
+		glColorMask(false, true, true, false);
+		DrawObjects();
+		glColorMask(true, true, true, true);
+		break;
+	default:
+		break;
 	}
-
-	
 }
 
 void CEngine::DrawObjects()
 {
 	glm::mat4 View = m_Camera.GetView();
-	//glm::mat4 Projection = glm::perspective(glm::radians(m_FOV), 800.f / 600.f, 0.1f, 10000.0f);
-
-	const float Near = 0.1f, Far = 10000.f;
-	float top, bottom, left, right;
-	float Aspect = 800.f / 600.f;
-	GLfloat FOV = glm::radians(m_FOV);
-	top = Near * tan(FOV / 2);
-	bottom = -top;
-	right = Aspect * tan(FOV / 2) * Near;
-	left = -left;
-
-	glm::mat4 Projection = glm::frustum(left, right, bottom, top, Near, Far);
+	glm::mat4 Projection = GetProjection();
 
 	std::vector<CUniformParam*> Params;
 	Params.push_back(new CUniformParam_mat4(View, "view"));
@@ -259,6 +278,8 @@ void CEngine::DrawObjects()
 			Params.push_back(new CUniformParam_mat4(Projection, "projection"));
 			Params.push_back(new CUniformParam_vec4(PickingColor, "PickingColor"));
 			m_Objects[i]->Draw(Params);
+			for (auto& param : Params)
+				delete param;
 			break;
 		}
 		//case 1:
@@ -272,7 +293,11 @@ void CEngine::DrawObjects()
 			break;
 		}
 
+		if (m_ColorPicker->Enabled())
+			delete *LocalParams.rbegin();
 	}
+	for (auto& param : Params)
+		delete param;
 }
 
 void CEngine::OnKey(int key, int scancode, int action, int mode)
@@ -282,31 +307,47 @@ void CEngine::OnKey(int key, int scancode, int action, int mode)
 	else if (action == GLFW_RELEASE)
 		m_Keys[key] = false;
 
-	if (key == GLFW_KEY_C && action == GLFW_RELEASE)
+	if (action == GLFW_RELEASE)
 	{
-		if (m_CursorMode == ECursorMode::Normal)
+		switch (key)
 		{
-			glfwSetInputMode(m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			m_CursorMode = ECursorMode::Disabled;
-			glfwSetCursorPos(m_Window->GetWindow(), m_LastX, m_LastY);
+		case GLFW_KEY_C:
+		{
+			if (m_CursorMode == ECursorMode::Normal)
+			{
+				glfwSetInputMode(m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				m_CursorMode = ECursorMode::Disabled;
+				glfwSetCursorPos(m_Window->GetWindow(), m_LastX, m_LastY);
+			}
+			else
+			{
+				glfwSetInputMode(m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				m_CursorMode = ECursorMode::Normal;
+			}
+			break;
 		}
-		else
+		case GLFW_KEY_M:
 		{
-			glfwSetInputMode(m_Window->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			m_CursorMode = ECursorMode::Normal;
+			m_ViewMode = static_cast<EViewMode>(((int)m_ViewMode + 1) % 3);
+			break;
+		}
+		case GLFW_KEY_O:
+		{
+			m_ChangedOption = static_cast<EChangedOption>(((int)m_ChangedOption + 1) % 3);
+			cout << "Now you are changing " << m_ChangedOption << endl;
+			break;
+		}
+		default:
+			break;
 		}
 	}
 
-	if (key == GLFW_KEY_P && action == GLFW_RELEASE)
-	{
-		m_OnlyColorPicking = !m_OnlyColorPicking;
-	}
 }
 
 void CEngine::OnMouseMove(double xpos, double ypos)
 {
 	double xoffset = xpos - m_LastX;
-	double yoffset = m_LastY - ypos; // Обратный порядок вычитания потому что оконные Y-координаты возрастают с верху вниз 
+	double yoffset = m_LastY - ypos;
 	m_LastX = xpos;
 	m_LastY = ypos;
 
@@ -330,7 +371,7 @@ void CEngine::OnScroll(double xoffset, double yoffset)
 
 void CEngine::OnClick(int button, int action, int mods)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && m_ViewMode == EViewMode::Normal)
 	{
 		m_ColorPicker->Enable();
 	}
@@ -346,6 +387,48 @@ void CEngine::DoMovement()
 		m_Camera.Move(EDirection::Left, static_cast<GLfloat>(m_DeltaTime));
 	if (m_Keys[GLFW_KEY_D])
 		m_Camera.Move(EDirection::Right, static_cast<GLfloat>(m_DeltaTime));
+	if (m_Keys[GLFW_KEY_KP_SUBTRACT])
+	{
+		switch (m_ChangedOption)
+		{
+		case EChangedOption::FOV:
+			OnScroll(0, 0.01);
+			cout << m_FOV << endl;
+			break;
+		case EChangedOption::Convergence:
+			m_Convergence -= (m_Far - m_Near) * 0.001f;
+			m_Convergence = std::max(m_Near, m_Convergence);
+			cout << m_Convergence << endl;
+			break;
+		case EChangedOption::EyeDistance:
+			m_Camera.SetEyeDistance(m_Camera.GetEyeDistance() - 0.0001f);
+			cout << m_Camera.GetEyeDistance() << endl;
+			break;
+		default:
+			break;
+		}
+	}
+	if (m_Keys[GLFW_KEY_KP_ADD])
+	{
+		switch (m_ChangedOption)
+		{
+		case EChangedOption::FOV:
+			OnScroll(0, -0.01);
+			cout << m_FOV << endl;
+			break;
+		case EChangedOption::Convergence:
+			m_Convergence += (m_Far - m_Near) * 0.001f;
+			m_Convergence = std::min(m_Far, m_Convergence);
+			cout << m_Convergence << endl;
+			break;
+		case EChangedOption::EyeDistance:
+			m_Camera.SetEyeDistance(m_Camera.GetEyeDistance() + 0.0001f);
+			cout << m_Camera.GetEyeDistance() << endl;
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void CEngine::PickObject(CGLObject* Object)
@@ -376,4 +459,64 @@ std::vector<CGLObject*>& CEngine::GetObjects()
 glm::vec<2, double> CEngine::GetCursor() const
 {
 	return glm::vec<2, double>(m_LastX, m_LastY);
+}
+
+const float Aspect = 800.f / 600.f;
+
+glm::mat4 CEngine::GetProjection() const
+{
+	switch (m_Camera.GetEyePos())
+	{
+	case EEyePos::Normal:
+	{
+		float top, bottom, left, right;
+		GLfloat FOV = glm::radians(m_FOV);
+		top = m_Near * tan(FOV / 2);
+		bottom = -top;
+		right = Aspect * tan(FOV / 2) * m_Near;
+		left = -right;
+
+		//glMatrixMode(GL_PROJECTION);
+		//glLoadIdentity();
+		//glFrustum(left, right, bottom, top, m_Near, m_Far);
+
+		return glm::frustum(left, right, bottom, top, m_Near, m_Far);
+	}
+	case EEyePos::Left:
+		return GetLeftProjection();
+	case EEyePos::Right:
+		return GetRightProjection();
+	default:
+		throw exception("bad eye pos");
+	}
+}
+
+glm::mat4 CEngine::GetLeftProjection() const
+{
+	float top, bottom, left, right;
+	GLfloat FOV = glm::radians(m_FOV);
+	top = m_Near * tan(FOV / 2);
+	bottom = -top;
+	float a = Aspect * tan(FOV / 2) * m_Convergence;
+	float b = a - m_Camera.GetEyeDistance() / 2;
+	float c = a + m_Camera.GetEyeDistance() / 2;
+	left = -b * m_Near / m_Convergence;
+	right = c * m_Near / m_Convergence;
+
+	return glm::frustum(left, right, bottom, top, m_Near, m_Far);
+}
+
+glm::mat4 CEngine::GetRightProjection() const
+{
+	float top, bottom, left, right;
+	GLfloat FOV = glm::radians(m_FOV);
+	top = m_Near * tan(FOV / 2);
+	bottom = -top;
+	float a = Aspect * tan(FOV / 2) * m_Convergence;
+	float b = a - m_Camera.GetEyeDistance() / 2;
+	float c = a + m_Camera.GetEyeDistance() / 2;
+	left = -c * m_Near / m_Convergence;
+	right = b * m_Near / m_Convergence;
+
+	return glm::frustum(left, right, bottom, top, m_Near, m_Far);
 }
