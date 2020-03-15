@@ -21,7 +21,7 @@ glm::mat4 CCamera::GetView()
 {
 	return glm::lookAt(Position + Shift,
 		Position + Front + Shift,
-		glm::vec3(0.0f, 1.0f, 0.0f));
+		Up);
 }
 
 void CCamera::Move(EDirection Direction, GLfloat cameraSpeed)
@@ -80,10 +80,10 @@ void CCamera::SetEyePos(EEyePos EyePos)
 		Shift = glm::vec3(0);
 		break;
 	case EEyePos::Left:
-		Shift = glm::normalize(glm::cross(Front, Up)) * (m_EyeDistance / 2);
+		Shift = -glm::normalize(glm::cross(Front, Up)) * (m_EyeDistance / 2);
 		break;
 	case EEyePos::Right:
-		Shift = -glm::normalize(glm::cross(Front, Up)) * (m_EyeDistance / 2);
+		Shift = glm::normalize(glm::cross(Front, Up)) * (m_EyeDistance / 2);
 		break;
 	default:
 		break;
@@ -97,8 +97,8 @@ EEyePos CCamera::GetEyePos() const
 
 void CCamera::SetEyeDistance(GLfloat EyeDistance)
 {
-	m_EyeDistance = std::max(EyeDistance, -0.1f);
-	m_EyeDistance = std::min(EyeDistance, 0.1f);
+	m_EyeDistance = std::max(EyeDistance, -1.f);
+	m_EyeDistance = std::min(EyeDistance, 1.f);
 }
 
 GLfloat CCamera::GetEyeDistance() const

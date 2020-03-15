@@ -42,8 +42,8 @@ class CEngine
 	double m_LastFrame = 0.0f, m_DeltaTime;
 	double m_LastX = 400, m_LastY = 300;
 	GLfloat m_FOV = 45.0f;
-	GLfloat m_Convergence = 1.0f;
-	float m_Near = 0.1f, m_Far = 10.f;
+	GLfloat m_Convergence = 13.0f;
+	float m_Near = 0.1f, m_Far = 100.f;
 	ECursorMode m_CursorMode = ECursorMode::Disabled;
 	EChangedOption m_ChangedOption = EChangedOption::FOV;
 

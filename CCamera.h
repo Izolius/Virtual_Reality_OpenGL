@@ -23,7 +23,7 @@ private:
 	GLfloat m_Yaw = -90.0f;
 	GLfloat m_Pitch = 0.0f;
 	EEyePos m_EyePos = EEyePos::Normal;
-	GLfloat m_EyeDistance = 0.01f;
+	GLfloat m_EyeDistance = 1.0f;
 
 public:
 	CCamera();

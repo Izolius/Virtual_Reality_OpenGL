@@ -94,12 +94,44 @@ void CEngine::Prepare()
 
 		glm::mat4 model;
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0f));
-		//model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
 		Object->SetModel(model);
-
-		//Object->AddUniformParam(new CUniformParam_vec3(glm::vec3(1.0f, 0.5f, 0.31f), "objectColor"));
 		m_Objects.push_back(Object);
-		m_Terrain = Object;
+	}
+
+	if (true)
+	{
+		CTexture Texture;
+		Texture.Load("rsc/box.jpg");
+		CShader Shader; Shader.Load("shaders/vert.glsl", "shaders/frag_texture.glsl");
+		m_Shaders.push_back(Shader);
+
+		CGLMesh* Object = CObjLoader::Load("rsc/box.obj");
+		Object->SetProgram(Shader.Program);
+		Object->SetTexture(Texture);
+		Object->Prepare();
+
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(5.0f, 5.0f, -2.0f));
+		Object->SetModel(model);
+		m_Objects.push_back(Object);
+	}
+
+	if (true)
+	{
+		CTexture Texture;
+		Texture.Load("rsc/box.jpg");
+		CShader Shader; Shader.Load("shaders/vert.glsl", "shaders/frag_texture.glsl");
+		m_Shaders.push_back(Shader);
+
+		CGLMesh* Object = CObjLoader::Load("rsc/box.obj");
+		Object->SetProgram(Shader.Program);
+		Object->SetTexture(Texture);
+		Object->Prepare();
+
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(10.0f, 10.0f, -2.0f));
+		Object->SetModel(model);
+		m_Objects.push_back(Object);
 	}
 
 	if (true)
@@ -242,6 +274,7 @@ void CEngine::OnDrow()
 		glColorMask(false, true, true, false);
 		DrawObjects();
 		glColorMask(true, true, true, true);
+		m_Camera.SetEyePos(EEyePos::Normal);
 		break;
 	default:
 		break;
@@ -396,7 +429,7 @@ void CEngine::DoMovement()
 			cout << m_FOV << endl;
 			break;
 		case EChangedOption::Convergence:
-			m_Convergence -= (m_Far - m_Near) * 0.001f;
+			m_Convergence -= (m_Far - m_Near) * 0.0001f;
 			m_Convergence = std::max(m_Near, m_Convergence);
 			cout << m_Convergence << endl;
 			break;
@@ -417,7 +450,7 @@ void CEngine::DoMovement()
 			cout << m_FOV << endl;
 			break;
 		case EChangedOption::Convergence:
-			m_Convergence += (m_Far - m_Near) * 0.001f;
+			m_Convergence += (m_Far - m_Near) * 0.0001f;
 			m_Convergence = std::min(m_Far, m_Convergence);
 			cout << m_Convergence << endl;
 			break;
@@ -476,10 +509,6 @@ glm::mat4 CEngine::GetProjection() const
 		right = Aspect * tan(FOV / 2) * m_Near;
 		left = -right;
 
-		//glMatrixMode(GL_PROJECTION);
-		//glLoadIdentity();
-		//glFrustum(left, right, bottom, top, m_Near, m_Far);
-
 		return glm::frustum(left, right, bottom, top, m_Near, m_Far);
 	}
 	case EEyePos::Left:
@@ -502,6 +531,9 @@ glm::mat4 CEngine::GetLeftProjection() const
 	float c = a + m_Camera.GetEyeDistance() / 2;
 	left = -b * m_Near / m_Convergence;
 	right = c * m_Near / m_Convergence;
+	//double frustumshift = (m_Camera.GetEyeDistance() / 2) * m_Near / m_Convergence;
+	//left = -Aspect * top - frustumshift;
+	//right = Aspect * top - frustumshift;
 
 	return glm::frustum(left, right, bottom, top, m_Near, m_Far);
 }
@@ -517,6 +549,9 @@ glm::mat4 CEngine::GetRightProjection() const
 	float c = a + m_Camera.GetEyeDistance() / 2;
 	left = -c * m_Near / m_Convergence;
 	right = b * m_Near / m_Convergence;
+	//double frustumshift = (m_Camera.GetEyeDistance() / 2) * m_Near / m_Convergence;
+	//left = -Aspect * top - frustumshift;
+	//right = Aspect * top - frustumshift;
 
 	return glm::frustum(left, right, bottom, top, m_Near, m_Far);
 }
